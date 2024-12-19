@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>İşaret Dili Tahmin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card {
+            width: 18rem;
+        }
+
+        .image-preview {
+            width: 500px;
+            height: 500px;
+            object-fit: cover;
+            border: 1px solid black;
+            border-radius: 10px;
+        }
+
+        .preview-container {
+            text-align: center;
+            display: none;
+        }
+
+        .row.mt-3 {
+            text-align: center;
+        }
+
+        #predictCard {
+            width: 50%;
+            display: none;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container" style="margin-top: 10vh">
+    <div class="row">
+        <div class="col">
+            <div class="card mx-auto top-50 translate-middle-y">
+                <div class="card-header">Fotoğraf Yükleme Alanı</div>
+                <div class="card-body">
+                    <form id="upload-img" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input class="form-control" type="file" accept="image/*" id="fileInput" name="image">
+                        <button type="submit" class="mt-3 btn btn-primary float-end">Tahmin Et</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">
+            <div class="preview-container">
+                <h2>Ön izleme</h2>
+                <img src="#" alt="Preview" class="image-preview" id="previewImage">
+            </div>
+        </div>
+        <div class="col">
+            <div class="preview-container">
+                <h2>Tahmin Edilen</h2>
+                <img src="#" alt="Predict" class="image-preview" id="predictImage">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <h2 id="predict"></h2>
+        <div class="col">
+            <div class="card mx-auto top-50 translate-middle-y" id="predictCard">
+                <div class="card-body">
+                    <p id="predictText"></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const input = document.getElementById('fileInput');
+    const previewImage = document.getElementById('previewImage');
+    const imageContainer = document.querySelectorAll('.preview-container');
+
+    input.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                imageContainer[0].style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imageContainer.style.display = 'none';
+            previewImage.src = '';
+        }
+    });
+</script>
+
+<script>
+    const placeholder = {
+        'hello': {
+            'url': '../SignLanguage/sign_language_3_class/hello1.jpg',
+            'aciklama': "Meaning: Used as a greeting or to begin a telephone conversation.\n \n Pronunciation (sign description): Dominant flat hand with the palm facing outward in contact with the upper side of head moves away from the headside. Thumb may be inside on the palm or open. Facial expression reflects your tone, usually with a pleasant look. Who would say 'hello' a deadpan tone? :)"
+        },
+        'house': {
+            'url': '../SignLanguage/sign_language_3_class/house6.jpg',
+            'aciklama': "Meaning: A building that serves as living quarters for one or a few families.\n \n Pronunciation (sign description): Both flat hands with their fingertips in contact, held in upper neutral space, palms facing each other, both diverge and move downward."
+        },
+        'ily': {
+            'url': '../SignLanguage/sign_language_3_class/ily3.jpg',
+            'aciklama': "Meaning: A single-handed phrase commonly used by native ASL speakers to express closeness. It often conveys sentiments such as 'You're great!', 'I like you', 'I care about you', or 'You're so adorable!' rather than romantic affection. Its meaning may vary depending on context and intonation.\n\n This sign with the ILY handshape is used more of a verb (LOVE-YA) rather than signing 'I LOVE YOU'."
+        }
+    }
+
+    const predictCard = document.getElementById('predictCard');
+    const predictImage = document.getElementById('predictImage');
+    const predictText = document.getElementById('predictText');
+
+    document.getElementById('upload-img').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const response = await fetch('', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        document.getElementById('predict').innerText = `Tahmin: ${result.result}`;
+        imageContainer[1].style.display = 'block';
+        predictImage.src = placeholder[result.result]['url']
+        predictCard.style.display = 'block';
+        predictText.innerText = placeholder[result.result]['aciklama']
+    });
+</script>
+
+</body>
+</html>
